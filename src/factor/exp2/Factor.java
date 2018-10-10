@@ -5,58 +5,60 @@ import java.util.Random;
 import java.util.concurrent.atomic.AtomicReference;
 
 public class Factor {
-    public static void main(String[] args) {
-    	exp1();
-    }
+	public static void main(String[] args) {
+		exp1();
+	}
 
 	private static final int CALCULATION_COUNT = 50000;
-    private static void exp1() {
-    	int n = Runtime.getRuntime().availableProcessors();
-    	Factorizer ucf = new SafeCachingFactorizer2();
-    	Thread[] threads = new Thread[n];
-    	for (int i = 0; i < threads.length; i++) {
-    		threads[i] = new Thread() {
-    			public void run() {
-    				for (int j = 0; j < CALCULATION_COUNT; j++) {
-	    				int number = new Random().nextInt(1000);
-	    				int[] factors = ucf.calculateFactor(number);
-	    				assertFactors(number, factors);
-    				}
-    			}
-    		};
-    		threads[i].start();
-    	}
 
-    	try {
-    		for (int i = 0; i < threads.length; i++) {
+	private static void exp1() {
+		int n = Runtime.getRuntime().availableProcessors();
+		Factorizer ucf = new SafeCachingFactorizer2();
+		Thread[] threads = new Thread[n];
+		for (int i = 0; i < threads.length; i++) {
+			threads[i] = new Thread() {
+				public void run() {
+					for (int j = 0; j < CALCULATION_COUNT; j++) {
+						int number = new Random().nextInt(1000);
+						int[] factors = ucf.calculateFactor(number);
+						assertFactors(number, factors);
+					}
+				}
+			};
+			threads[i].start();
+		}
+
+		try {
+			for (int i = 0; i < threads.length; i++) {
 				threads[i].join();
-    		}
-    	} catch (Throwable e) {
-    	}
-    }
+			}
+		} catch (Throwable e) {
+		}
+	}
 
-    private static void assertFactors(int n, int[] factors) {
-    	int p = 1;
-    	for (int f : factors) {
-    		p *= f;
-    	}
-    	if (p != n) {
-    		StringBuilder sb = new StringBuilder();
-    		sb.append("Wrong factors: ").append(n).append(" != ");
-    		for (int i = 0; i < factors.length; i++) {
-    			sb.append(factors[i]);
-    			if (i < factors.length - 1) {
-    				sb.append(" * ");
-    			}
-    		}
-    		System.out.println(sb.toString());
-    	}
-    }
+	private static void assertFactors(int n, int[] factors) {
+		int p = 1;
+		for (int f : factors) {
+			p *= f;
+		}
+		if (p != n) {
+			StringBuilder sb = new StringBuilder();
+			sb.append("Wrong factors: ").append(n).append(" != ");
+			for (int i = 0; i < factors.length; i++) {
+				sb.append(factors[i]);
+				if (i < factors.length - 1) {
+					sb.append(" * ");
+				}
+			}
+			System.out.println(sb.toString());
+		}
+	}
 }
 
 class UnsafeCachingFactorizer1 extends Factorizer {
 	private final AtomicReference<Integer> lastNumber = new AtomicReference<Integer>();
 	private final AtomicReference<int[]> lastFactors = new AtomicReference<int[]>();
+
 	public int[] calculateFactor(int n) {
 		Integer last = lastNumber.get();
 		if (last != null && last == n) {
@@ -125,7 +127,7 @@ abstract class Factorizer {
 			return new int[0];
 		}
 		if (n < 2) {
-			return new int[] {n};
+			return new int[] { n };
 		}
 		ArrayList<Integer> factors = new ArrayList<>();
 		int p = 2;
@@ -156,7 +158,7 @@ abstract class Factorizer {
 		sPrimes[2] = VALUE_IS_PRIME;
 		for (int i = 2; i < sPrimes.length; i++) {
 			if (sPrimes[i] == VALUE_IS_PRIME) {
-				for (int j = i+i; j < sPrimes.length; j += i) {
+				for (int j = i + i; j < sPrimes.length; j += i) {
 					sPrimes[j] = VALUE_NOT_PRIME;
 				}
 			}

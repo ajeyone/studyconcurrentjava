@@ -5,39 +5,41 @@ import java.util.Random;
 import java.util.concurrent.atomic.AtomicLong;
 
 public class Factor {
-    public static void main(String[] args) {
-    	exp1();
-    }
+	public static void main(String[] args) {
+		exp1();
+	}
 
 	private static final int CALCULATION_COUNT = 50000;
-    private static void exp1() {
-    	int n = Runtime.getRuntime().availableProcessors();
-    	System.out.println("cpu: " + n);
-    	Factorizer ucf = new SafeCountingFactorizer1();
-    	Thread[] threads = new Thread[n];
-    	for (int i = 0; i < threads.length; i++) {
-    		threads[i] = new Thread() {
-    			public void run() {
-    				for (int j = 0; j < CALCULATION_COUNT; j++) {
-	    				int number = new Random().nextInt(1000);
-	    				ucf.calculateFactor(number);
-    				}
-    			}
-    		};
-    		threads[i].start();
-    	}
 
-    	try {
-    		for (int i = 0; i < threads.length; i++) {
+	private static void exp1() {
+		int n = Runtime.getRuntime().availableProcessors();
+		System.out.println("cpu: " + n);
+		Factorizer ucf = new SafeCountingFactorizer1();
+		Thread[] threads = new Thread[n];
+		for (int i = 0; i < threads.length; i++) {
+			threads[i] = new Thread() {
+				public void run() {
+					for (int j = 0; j < CALCULATION_COUNT; j++) {
+						int number = new Random().nextInt(1000);
+						ucf.calculateFactor(number);
+					}
+				}
+			};
+			threads[i].start();
+		}
+
+		try {
+			for (int i = 0; i < threads.length; i++) {
 				threads[i].join();
-    		}
+			}
 
-   			int correctCount = threads.length * CALCULATION_COUNT;
-    		System.out.println("final count=" + ucf.getCount() + ", supposed to be " + correctCount);
-    		System.out.println(ucf.getCount() == correctCount ? "Correct, but cannot prove it is thread safe." : "Wrong, it is not thread safe.");
-    	} catch (Throwable e) {
-    	}
-    }
+			int correctCount = threads.length * CALCULATION_COUNT;
+			System.out.println("final count=" + ucf.getCount() + ", supposed to be " + correctCount);
+			System.out.println(ucf.getCount() == correctCount ? "Correct, but cannot prove it is thread safe."
+					: "Wrong, it is not thread safe.");
+		} catch (Throwable e) {
+		}
+	}
 }
 
 abstract class Factorizer {
@@ -46,7 +48,7 @@ abstract class Factorizer {
 			return new int[0];
 		}
 		if (n < 2) {
-			return new int[] {n};
+			return new int[] { n };
 		}
 		ArrayList<Integer> factors = new ArrayList<>();
 		int p = 2;
@@ -67,6 +69,7 @@ abstract class Factorizer {
 	}
 
 	abstract public int[] calculateFactor(int n);
+
 	abstract public long getCount();
 
 	static final int[] sPrimes = new int[1000];
@@ -78,7 +81,7 @@ abstract class Factorizer {
 		sPrimes[2] = VALUE_IS_PRIME;
 		for (int i = 2; i < sPrimes.length; i++) {
 			if (sPrimes[i] == VALUE_IS_PRIME) {
-				for (int j = i+i; j < sPrimes.length; j += i) {
+				for (int j = i + i; j < sPrimes.length; j += i) {
 					sPrimes[j] = VALUE_NOT_PRIME;
 				}
 			}
