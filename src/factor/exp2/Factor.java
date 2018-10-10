@@ -1,25 +1,22 @@
 package factor.exp2;
 
-import java.util.ArrayList;
 import java.util.Random;
 import java.util.concurrent.atomic.AtomicReference;
 
+import algo.prime.FactorCalculator;
+
 public class Factor {
+	private static final int CALCULATION_COUNT_PER_THREAD = 50000;
+
 	public static void main(String[] args) {
-		exp1();
-	}
-
-	private static final int CALCULATION_COUNT = 50000;
-
-	private static void exp1() {
 		int n = Runtime.getRuntime().availableProcessors();
-		Factorizer ucf = new SafeCachingFactorizer2();
+		Factorizer ucf = new UnsafeCachingFactorizer1();
 		Thread[] threads = new Thread[n];
 		for (int i = 0; i < threads.length; i++) {
 			threads[i] = new Thread() {
 				public void run() {
-					for (int j = 0; j < CALCULATION_COUNT; j++) {
-						int number = new Random().nextInt(1000);
+					for (int j = 0; j < CALCULATION_COUNT_PER_THREAD; j++) {
+						int number = new Random().nextInt(Factorizer.MAX_PRIME_NUMBER);
 						int[] factors = ucf.calculateFactor(number);
 						assertFactors(number, factors);
 					}
@@ -50,9 +47,22 @@ public class Factor {
 					sb.append(" * ");
 				}
 			}
+			sb.append(" = ").append(p);
 			System.out.println(sb.toString());
 		}
 	}
+}
+
+abstract class Factorizer {
+	public static final int MAX_PRIME_NUMBER = 1000;
+
+	private FactorCalculator calculator = new FactorCalculator(MAX_PRIME_NUMBER);
+
+	protected int[] factor(int n) {
+		return calculator.factor(n);
+	}
+
+	abstract public int[] calculateFactor(int n);
 }
 
 class UnsafeCachingFactorizer1 extends Factorizer {
@@ -87,6 +97,28 @@ class UnsafeCachingFactorizer2 extends Factorizer {
 	}
 }
 
+class SafeCachingFactorizer1 extends Factorizer {
+	private long lastNumber = -1;
+	private int[] lastFactors;
+
+	public int[] calculateFactor(int n) {
+		int[] factors = null;
+		synchronized (this) {
+			if (lastNumber == n) {
+				factors = lastFactors;
+			}
+		}
+		if (factors == null) {
+			factors = factor(n);
+			synchronized (this) {
+				lastNumber = n;
+				lastFactors = factors;
+			}
+		}
+		return factors;
+	}
+}
+
 class SafeCachingFactorizer2 extends Factorizer {
 	private long lastNumber = -1;
 	private int[] lastFactors;
@@ -99,84 +131,5 @@ class SafeCachingFactorizer2 extends Factorizer {
 		lastNumber = n;
 		lastFactors = factors;
 		return factors;
-	}
-}
-
-class SafeCachingFactorizer1 extends Factorizer {
-	private long lastNumber = -1;
-	private int[] lastFactors;
-
-	public int[] calculateFactor(int n) {
-		synchronized (this) {
-			if (lastNumber == n) {
-				return lastFactors;
-			}
-		}
-		int[] factors = factor(n);
-		synchronized (this) {
-			lastNumber = n;
-			lastFactors = factors;
-		}
-		return factors;
-	}
-}
-
-abstract class Factorizer {
-	public int[] factor(int n) {
-		if (n < 0) {
-			return new int[0];
-		}
-		if (n < 2) {
-			return new int[] { n };
-		}
-		ArrayList<Integer> factors = new ArrayList<>();
-		int p = 2;
-		while (n != 1) {
-			if (n % p == 0) {
-				n /= p;
-				factors.add(p);
-			} else {
-				p = nextPrime(p);
-			}
-			// System.out.println("calc: n=" + n + ", p=" + p);
-		}
-		int[] result = new int[factors.size()];
-		for (int i = 0; i < factors.size(); i++) {
-			result[i] = factors.get(i);
-		}
-		return result;
-	}
-
-	abstract public int[] calculateFactor(int n);
-
-	static final int[] sPrimes = new int[1000];
-	static final int VALUE_IS_PRIME = 0;
-	static final int VALUE_NOT_PRIME = 1;
-
-	static {
-		sPrimes[0] = sPrimes[1] = VALUE_NOT_PRIME;
-		sPrimes[2] = VALUE_IS_PRIME;
-		for (int i = 2; i < sPrimes.length; i++) {
-			if (sPrimes[i] == VALUE_IS_PRIME) {
-				for (int j = i + i; j < sPrimes.length; j += i) {
-					sPrimes[j] = VALUE_NOT_PRIME;
-				}
-			}
-		}
-	}
-
-	static public boolean isPrimeNumber(int n) {
-		if (n < sPrimes.length) {
-			return sPrimes[n] == VALUE_IS_PRIME;
-		}
-		return false;
-	}
-
-	static public int nextPrime(int n) {
-		n++;
-		while (n < sPrimes.length && sPrimes[n] == VALUE_NOT_PRIME) {
-			n++;
-		}
-		return n;
 	}
 }
