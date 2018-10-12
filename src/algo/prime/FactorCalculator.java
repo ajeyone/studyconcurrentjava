@@ -33,4 +33,24 @@ public class FactorCalculator {
         }
         return result;
     }
+    
+    public int getMaxPrimeNumber() {
+        return primeNumber.getMax();
+    }
+
+    public static String buildFactorFormula(int n, int[] factors) {
+        StringBuilder sb = new StringBuilder();
+        if (factors == null) {
+            throw new IllegalArgumentException("factors null");
+        }
+        sb.append(n).append(" = ");
+        int length = factors.length;
+        for (int i = 0; i < length; i++) {
+            sb.append(factors[i]);
+            if (i < length - 1) {
+                sb.append(" * ");
+            }
+        }
+        return sb.toString();
+    }
 }

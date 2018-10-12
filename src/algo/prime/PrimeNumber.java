@@ -62,4 +62,8 @@ public class PrimeNumber {
         } while (n < length && primes[n] == VALUE_NOT_PRIME);
         return n == length ? 0 : n;
     }
+
+    public int getMax() {
+        return primes.length - 1;
+    }
 }
