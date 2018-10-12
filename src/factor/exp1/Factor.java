@@ -4,20 +4,41 @@ import java.util.Random;
 import java.util.concurrent.atomic.AtomicLong;
 
 import algo.prime.FactorCalculator;
+import input.terminal.SimpleMenu;
 
 public class Factor {
     private static final int CALCULATION_COUNT_PER_THREAD = 50000;
 
+    private static Factorizer selectFactorizer() {
+        SimpleMenu menu = new SimpleMenu(new String[] { "Unsafe factorizer without any synchronization",
+                "Safe factorizer with AtomicLong", "Safe factorizer with synchronized block" }, "Select a factorizer");
+
+        int index = menu.selectWithRetryCount(3);
+        switch (index) {
+        case 0:
+            return new UnsafeCountingFactorizer();
+        case 1:
+            return new SafeCountingFactorizer1();
+        case 2:
+            return new SafeCountingFactorizer2();
+        default:
+            return null;
+        }
+    }
+
     public static void main(String[] args) {
         int n = Runtime.getRuntime().availableProcessors();
-        Factorizer ucf = new SafeCountingFactorizer1();
+        Factorizer factorizer = selectFactorizer();
+        if (factorizer == null) {
+            return;
+        }
         Thread[] threads = new Thread[n];
         for (int i = 0; i < threads.length; i++) {
             threads[i] = new Thread() {
                 public void run() {
                     for (int j = 0; j < CALCULATION_COUNT_PER_THREAD; j++) {
                         int number = new Random().nextInt(Factorizer.MAX_PRIME_NUMBER);
-                        ucf.calculateFactor(number);
+                        factorizer.calculateFactor(number);
                     }
                 }
             };
@@ -30,8 +51,8 @@ public class Factor {
             }
 
             int expectedCount = threads.length * CALCULATION_COUNT_PER_THREAD;
-            System.out.println("final count=" + ucf.getCount() + ", supposed to be " + expectedCount);
-            String message = ucf.getCount() == expectedCount ? "Correct, it is thread safe."
+            System.out.println("final count=" + factorizer.getCount() + ", supposed to be " + expectedCount);
+            String message = factorizer.getCount() == expectedCount ? "Correct, it is thread safe."
                     : "Wrong, it is not thread safe.";
             System.out.println(message);
         } catch (Throwable e) {

@@ -3,8 +3,22 @@ package input.terminal;
 import java.util.Scanner;
 
 public class SimpleMenu {
+    private static final String DEFAULT_INPUT_HINT = "input a menu index:";
+    private static final String DEFAULT_ERROR_HINT = "invalid menu index";
+
     private final String[] items;
     private final String title;
+
+    private String inputHint = DEFAULT_INPUT_HINT;
+    private String errorHint = DEFAULT_ERROR_HINT;
+
+    public void setInputHint(String inputHint) {
+        this.inputHint = inputHint;
+    }
+
+    public void setErrorHint(String errorHint) {
+        this.errorHint = errorHint;
+    }
 
     public SimpleMenu(String[] items) {
         this(items, null);
@@ -14,8 +28,8 @@ public class SimpleMenu {
         this.items = items;
         this.title = title;
     }
-    
-    public int select(String inputHint, String errorHint, int retryTime) {
+
+    public int selectWithRetryCount(int retryTime) {
         int id = -1;
         int i = 0;
         while ((retryTime <= 0 || i < retryTime) && (id = show(inputHint, errorHint)) < 0) {

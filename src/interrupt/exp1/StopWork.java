@@ -12,7 +12,7 @@ public class StopWork {
     private static Thread selectWorkThread() {
         SimpleMenu menu = new SimpleMenu(new String[] { "Endless work thread", "NonBlock work thread",
                 "Block work thread", "Endless work thread 2" }, "Select a work thread");
-        int index = menu.select("input a menu index:", "invalid input", 3);
+        int index = menu.selectWithRetryCount(3);
         switch (index) {
         case 0:
             return new EndlessWorkThread("Endless1", calculator);

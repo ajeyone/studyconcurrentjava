@@ -4,20 +4,41 @@ import java.util.Random;
 import java.util.concurrent.atomic.AtomicReference;
 
 import algo.prime.FactorCalculator;
+import input.terminal.SimpleMenu;
 
 public class Factor {
     private static final int CALCULATION_COUNT_PER_THREAD = 50000;
 
+    private static Factorizer selectFactorizer() {
+        SimpleMenu menu = new SimpleMenu(new String[] { "Unsafe factorizer with AtomicReference",
+                "Unsafe factorizer without any synchronization", "Safe factorizer with synchronized blocks",
+                "Safe factorizer with synchronized method" }, "Select a factorizer");
+
+        int index = menu.selectWithRetryCount(3);
+        switch (index) {
+        case 0:
+            return new UnsafeCachingFactorizer1();
+        case 1:
+            return new UnsafeCachingFactorizer2();
+        case 2:
+            return new SafeCachingFactorizer1();
+        case 3:
+            return new SafeCachingFactorizer2();
+        default:
+            return null;
+        }
+    }
+
     public static void main(String[] args) {
         int n = Runtime.getRuntime().availableProcessors();
-        Factorizer ucf = new UnsafeCachingFactorizer1();
+        Factorizer factorizer = selectFactorizer();
         Thread[] threads = new Thread[n];
         for (int i = 0; i < threads.length; i++) {
             threads[i] = new Thread() {
                 public void run() {
                     for (int j = 0; j < CALCULATION_COUNT_PER_THREAD; j++) {
                         int number = new Random().nextInt(Factorizer.MAX_PRIME_NUMBER);
-                        int[] factors = ucf.calculateFactor(number);
+                        int[] factors = factorizer.calculateFactor(number);
                         assertFactors(number, factors);
                     }
                 }
