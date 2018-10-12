@@ -3,16 +3,36 @@ package interrupt.exp1;
 import java.util.Random;
 
 import algo.prime.FactorCalculator;
+import input.terminal.SimpleMenu;
 
 public class StopWork {
     private static final int MAX_PRIME_NUMBER = 1000;
     private static FactorCalculator calculator = new FactorCalculator(MAX_PRIME_NUMBER);
 
+    private static Thread selectWorkThread() {
+        SimpleMenu menu = new SimpleMenu(new String[] { "Endless work thread", "NonBlock work thread",
+                "Block work thread", "Endless work thread 2" }, "Select a work thread");
+        int index = menu.select("input a menu index:", "invalid input", 3);
+        switch (index) {
+        case 0:
+            return new EndlessWorkThread("Endless1", calculator);
+        case 1:
+            return new NonBlockWorkThread("NonBlock", calculator);
+        case 2:
+            return new BlockWorkThread("Block", calculator);
+        case 3:
+            return new EndlessBlockWorkThread("Endless2", calculator);
+        default:
+            return null;
+        }
+    }
+
     public static void main(String[] args) {
-        // Thread workThread = new EndlessWorkThread("endless", calculator);
-        // Thread workThread = new NonBlockWorkThread("nonblock", calculator);
-        // Thread workThread = new BlockWorkThread("block", calculator);
-        Thread workThread = new EndlessBlockWorkThread("endless", calculator);
+        Thread workThread = selectWorkThread();
+        if (workThread == null) {
+            return;
+        }
+
         workThread.start();
         try {
             Thread.sleep(1000);
